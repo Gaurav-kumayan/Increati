@@ -1,0 +1,178 @@
+openapi: 3.0.0
+info:
+  title: Sample API
+  description: A simple example API definition.
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000/api
+    description: Development server
+
+paths:
+  /login:
+    post:
+      summary: Create a new user
+      description: Adds a new user to the system.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firebase_token:
+                  type: string
+                  description: Auth Token from Firebase.
+              required:
+                - firebase_token
+      responses:
+        "200":
+          description: User logged in successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  auth_token:
+                    type: string
+                    description: Authentication token for the logged-in user.
+        "400":
+          description: Invalid input.
+        "500":
+          description: Internal Server Error
+
+  /search:
+    parameters:
+      - name: type
+        in: query
+        required: true
+        schema:
+          type: string
+        description: The type of user to search for.
+      - name: query
+        in: query
+        required: false
+        schema:
+          type: string
+        description: The search query string. Either `query` or `location` is required.
+      - name: location
+        in: query
+        required: false
+        schema:
+          type: string
+        description: The location of users. Either `query` or `location` is required.
+
+    get:
+      summary: Get user details
+      description: Retrieves details for a specific user. Either `query` or `location` must be provided.
+      responses:
+        "200":
+          description: User details retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  username:
+                    type: string
+                    description: The username of the user.
+                  name:
+                    type: string
+                    description: The name of the user.
+                  bio:
+                    type: string
+                    description: Bio of the user
+                  photo_url:
+                    type: string
+                    description: "Photo of the user"
+        "400":
+          description: "Invalid input: either `query` or `location` must be provided."
+        "404":
+          description: User not found.
+        "500":
+          description: Internal Server Error.
+  /user/profile:
+    get:
+      summary: Retrieve user profile
+      description: Retrieves the profile details of the authenticated user.
+      parameters:
+        - name: auth_token
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Authentication token for the user.
+      responses:
+        "200":
+          description: User profile retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: The unique ID of the user.
+                  name:
+                    type: string
+                    description: The name of the user.
+                  email:
+                    type: string
+                    description: The email of the user.
+                  profile_picture:
+                    type: string
+                    description: URL to the user's profile picture.
+        "401":
+          description: Unauthorized access. Invalid or missing `auth_token`.
+        "404":
+          description: User profile not found.
+
+    put:
+      summary: Update user profile
+      description: Updates the profile details of the authenticated user.
+      parameters:
+        - name: auth_token
+          in: header
+          required: true
+          schema:
+            type: string
+          description: Authentication token for the user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Updated name of the user.
+                email:
+                  type: string
+                  format: email
+                  description: Updated email of the user.
+                profile_picture:
+                  type: string
+                  format: uri
+                  description: Updated URL for the user's profile picture.
+              required:
+                - name
+                - email
+      responses:
+        "200":
+          description: User profile updated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Profile updated successfully.
+        "400":
+          description: Invalid input.
+        "401":
+          description: Unauthorized access. Invalid or missing `auth_token`.
+        "404":
+          description: User profile not found.
+        "500":
+          description: Something went wrong.
