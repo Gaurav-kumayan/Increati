@@ -113,5 +113,5 @@ Essential navigation and communication tools.
 
 ## **Technical Points**  
 
-- **Authentication**: Powered by Firebase.  
+- **Authentication**: Powered by cleark.  
 - **Domain**: Focused on seamless creator operations.  
