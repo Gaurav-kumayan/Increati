@@ -1,0 +1,1 @@
+export type Country = {country_code:string,name:string}
