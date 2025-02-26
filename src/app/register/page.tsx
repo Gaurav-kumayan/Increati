@@ -10,7 +10,7 @@ import { Toaster } from "@/components/ui/sonner";
 export default async function LoginPage() {
 
   const { userId } = await auth();
-    if (!userId) return redirect("/sign-in");
+    if (!userId) return redirect(process.env.NEXT_PUBLIC_CLERK_SIGN_IN_URL || "/");
     let userExistsInDB=true, nicheCategories:NicheCategory[]=[], niches:Niche[]=[], countries:Country[]=[];
     try {
       // Check if user exists in PostgreSQL

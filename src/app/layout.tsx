@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import "./globals.css";
+import "@/app/globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
-import { dark } from '@clerk/themes';
+import { dark, neobrutalism } from '@clerk/themes';
 import ThemeProvider from "@/components/ThemeProvider";
 import { cookies } from "next/headers";
 import { Geist, Geist_Mono } from "next/font/google";
@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Increati - Connect, Collaborate, Create",
-  description: "Increati connects like-minded individuals, enabling seamless collaboration, knowledge sharing, and event organization—from nearby communities to a global audience.p",
+  description: "Increati connects like-minded individuals, enabling seamless collaboration, knowledge sharing, and event organization—from nearby communities to a global audience.",
   icons: {
     apple: [
       "/apple-icon-57x57.png",
@@ -56,7 +56,7 @@ export default async function RootLayout({
 
     <ClerkProvider
     appearance={{
-      baseTheme: dark
+      baseTheme: currentTheme=="dark"? dark : neobrutalism
     }}
     >
       <html lang="en" className={currentTheme}>
