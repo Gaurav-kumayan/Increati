@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/card"
 import { SelectScrollable } from "./ui/select-scrollable"
 import { Niche, NicheCategory } from "@/types/Niche";
-import { createRef, SetStateAction, useEffect, useState } from "react";
+import { createRef, useEffect, useState } from "react";
 import { Input } from "./ui/input";
 import { Country } from "@/types/Country";
 import { VirtualizedCombobox, VirtualizedCommand } from "./ui/virtualized-combobox";

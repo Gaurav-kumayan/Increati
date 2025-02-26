@@ -14,12 +14,12 @@ const ThemeProvider = ({
             const isDark=window.matchMedia('(prefers-color-scheme: dark)').matches;
             document.documentElement.classList.add(isDark?"dark":"");
             localStorage.setItem("theme",isDark?"dark":"light");
-            axios.get(`/api/set-theme?theme=${isDark?"dark":"light"}`).then(res=>{}).catch(err=>{});
+            axios.get(`/api/set-theme?theme=${isDark?"dark":"light"}`);
         }
         else{
             document.documentElement.classList.add(localTheme);
             document.documentElement.classList.remove(localTheme=="dark"?"light":"dark");
-            axios.get(`/api/set-theme?theme=${localTheme}`).then(res=>{}).catch(err=>{});
+            axios.get(`/api/set-theme?theme=${localTheme}`);
         }
     },[])
 
