@@ -25,7 +25,7 @@ export default function RegisterNavbar() {
     localStorage.setItem("theme",theme);
     document.documentElement.classList.add(theme);
     document.documentElement.classList.remove(theme=="dark"?"light":"dark");
-    axios.get(`/api/set-theme?theme=${theme}`).then(res=>{}).catch(err=>{});
+    axios.get(`/api/set-theme?theme=${theme}`);
     },[theme]);
   return (
     <>

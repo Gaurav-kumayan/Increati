@@ -35,7 +35,7 @@ export default function Navbar() {
     localStorage.setItem("theme",theme);
     document.documentElement.classList.add(theme);
     document.documentElement.classList.remove(theme=="dark"?"light":"dark");
-    axios.get(`/api/set-theme?theme=${theme}`).then(res=>{}).catch(err=>{});
+    axios.get(`/api/set-theme?theme=${theme}`);
     },[theme]);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
     useEffect(() => {
