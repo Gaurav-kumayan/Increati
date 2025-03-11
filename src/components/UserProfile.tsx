@@ -6,10 +6,18 @@ import { MapPin } from 'lucide-react';
 import { Badge } from './ui/badge';
 import EditButton from './ui/edit-button';
 import { useUser } from '@clerk/nextjs';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 const UserProfile = ({userInfo}:{userInfo:User}) => {
     const {user,isLoaded}=useUser();
     const currentUser={...user,...userInfo};
+    const router=useRouter();
+    useEffect(()=>{
+        if(currentUser.username){
+            router.push(`/user/${currentUser.username}`);
+        }
+    },[currentUser.username,router]);
     if(!isLoaded || !user) return null;
   return (
     <div className='w-full h-auto flex flex-col items-center'>

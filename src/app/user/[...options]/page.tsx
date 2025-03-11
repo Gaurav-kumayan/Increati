@@ -47,17 +47,64 @@ export async function generateMetadata({params}:{
 }): Promise<Metadata> {
   const [username]=(await params)['options'];
   const user=await getUser(username);
+  const {userId}=await auth();
 
-  if(!user){
+  if (!user) {
     return {
       title: 'User not found | Increati',
-      description: 'The user you are looking for does not exist.'
-    }
+      description: 'Oops! The user you are looking for does not exist or has been removed.',
+      openGraph: {
+        title: 'User not found | Increati',
+        description: 'Oops! The user you are looking for does not exist or has been removed.',
+        images: ['/default-user-image.png'], // Fallback image
+        type: 'website'
+      },
+      twitter: {
+        card: 'summary_large_image',
+        title: 'User not found | Increati',
+        description: 'Oops! The user you are looking for does not exist or has been removed.',
+        images: ['/default-user-image.png']
+      }
+    };
   }
-  
+
+  // Determine if the authenticated user is viewing their own profile
+  const isOwnProfile = user.id === userId;
+
   return {
-    title: `${user.first_name} ${user.last_name} (@${user.username})`,
-    description: 'Manage your profile, showcase your expertise, and connect with others.',
+    title: isOwnProfile
+      ? `My Profile | ${user.first_name} ${user.last_name}`
+      : `${user.first_name} ${user.last_name} (@${user.username})`,
+    
+    description: isOwnProfile
+      ? `This is your personal space on Increati. Update your profile, showcase your expertise, and connect with others.`
+      : `${user.first_name} is building connections and showcasing their expertise on Increati. Explore their profile to learn more!`,
+
+    openGraph: {
+      title: isOwnProfile
+        ? `My Profile | ${user.first_name} ${user.last_name}`
+        : `${user.first_name} ${user.last_name} (@${user.username})`,
+
+      description: isOwnProfile
+        ? `This is your personal space on Increati. Update your profile, showcase your expertise, and connect with others.`
+        : `${user.first_name} is building connections and showcasing their expertise on Increati. Explore their profile to learn more!`,
+
+      images: [user.image_url || '/default-user-image.png'],
+      type: 'profile'
+    },
+
+    twitter: {
+      card: 'summary_large_image',
+      title: isOwnProfile
+        ? `My Profile | ${user.first_name} ${user.last_name}`
+        : `${user.first_name} ${user.last_name} (@${user.username})`,
+
+      description: isOwnProfile
+        ? `This is your personal space on Increati. Update your profile, showcase your expertise, and connect with others.`
+        : `${user.first_name} is building connections and showcasing their expertise on Increati. Explore their profile to learn more!`,
+
+      images: [user.image_url || '/default-user-image.png']
+    }
   };
 }
 
@@ -67,8 +114,8 @@ export default async function ProfilePage({params}:{
   }>
 }){
   const [username]=(await params)['options'];
-  const user=await getUser(username);
   const {userId}=await auth();
+  const user=await getUser(username);
   if(user){
     if(userId===user.user_id){
       return (
