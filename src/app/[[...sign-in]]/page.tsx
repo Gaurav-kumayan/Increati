@@ -25,13 +25,13 @@ export async function generateMetadata(): Promise<Metadata> {
     return { title: "Error | Increati", description: "An error occurred while processing your request." };
   }
   if (!userId) {
-    return { title: "Sign In | Increati", description: "Sign in to your Increati account. Increati connects like-minded individuals, enabling seamless collaboration, knowledge sharing, and event organization—from nearby communities to a global audience." };
+    return { title: "Increati - Connect, Collaborate, Create", description: "Increati connects like-minded individuals, enabling seamless collaboration, knowledge sharing, and event organization—from nearby communities to a global audience." };
   }
   if (!userExistsInDB) {
     return { title: "Register | Increati", description: "Fill up the details to create your account and get started." };
   }
   
-  return { title: "Increati - Connect, Collaborate, Create", description: "Increati connects like-minded individuals, enabling seamless collaboration, knowledge sharing, and event organization—from nearby communities to a global audience." };
+  return { title: "Home | Increati", description: "Welcome to Increati – your go-to platform for creativity, innovation, and digital solutions. Explore insightful content, cutting-edge technology, and expert-driven ideas to bring your vision to life." };
 }
 
 export default async function Home() {
@@ -45,5 +45,5 @@ export default async function Home() {
   );
   if (!userExistsInDB) return redirect("/register");
 
-  return <Navbar />;
+  return <Navbar pathname="/" />;
 }
