@@ -9,10 +9,16 @@ import ThemeChangeButton from "../ui/ThemeChangeButton";
 
 export default function RegisterNavbar() {
   const [theme, setTheme] = useState<"light"|"dark"|undefined>(undefined);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(()=>{
+    setMounted(true);
+  },[]);
 
     useEffect(() => {
+      if(!mounted) return;
+    const localTheme=localStorage.getItem("theme");
     if(theme==undefined){
-        const localTheme=localStorage.getItem("theme");
         if(localTheme==null){
             const isDark=window.matchMedia('(prefers-color-scheme: dark)').matches;
             setTheme(isDark?"dark":"light");
@@ -22,11 +28,12 @@ export default function RegisterNavbar() {
         }
         return;
     }
+    if(localTheme==theme) return;
     localStorage.setItem("theme",theme);
     document.documentElement.classList.add(theme);
     document.documentElement.classList.remove(theme=="dark"?"light":"dark");
     axios.get(`/api/set-theme?theme=${theme}`);
-    },[theme]);
+    },[theme,mounted]);
   return (
     <>
       <header className="fixed top-0 left-0 w-full z-50 bg-background border-b h-14">
@@ -44,7 +51,7 @@ export default function RegisterNavbar() {
             
           </div>
         </div>
-        <ThemeChangeButton theme={theme} setTheme={setTheme} />
+        <ThemeChangeButton />
         <SignOutButton><Button variant={"outline"} className="border-2 border-foreground dark:border-primary bg-transparent rounded-lg hover:bg-foreground dark:hover:bg-primary hover:text-background transition-all duration-200">Sign Out</Button></SignOutButton>
             
           </div>

@@ -1,68 +1,15 @@
-"use client";
 import Link from "next/link"
 import { Home, Search, Bell, MessageCircleMore } from "lucide-react"
 import Image from "next/image";
-import { SignedIn, SignedOut, SignInButton, UserButton, useUser } from "@clerk/nextjs";
+import { SignedOut, SignInButton } from "@clerk/nextjs";
 import { Button } from "../ui/button";
 import { FaBell, FaHouseChimney } from "react-icons/fa6";
 import { IoChatbubbleEllipses } from "react-icons/io5";
-import { useEffect, useState } from "react";
-import { Input } from "../ui/input";
-import axios from "axios";
-import { Skeleton } from "../ui/skeleton";
-import { usePathname } from "next/navigation";
-import { CgProfile } from "react-icons/cg";
-import UserDropdown from "../UserDropdown";
+import SearchBar from "./SearchBar";
+import CustomUserButton from "../CustomUserButton";
 import ThemeChangeButton from "../ui/ThemeChangeButton";
 
-export default function Navbar() {
-  const {isLoaded}=useUser();
-  const pathname=usePathname();
-  const [theme, setTheme] = useState<"light"|"dark"|undefined>(undefined);
-
-    useEffect(() => {
-    if(theme==undefined){
-        const localTheme=localStorage.getItem("theme");
-        if(localTheme==null){
-            const isDark=window.matchMedia('(prefers-color-scheme: dark)').matches;
-            setTheme(isDark?"dark":"light");
-        }
-        else{
-            setTheme(localTheme as "light"|"dark");
-        }
-        return;
-    }
-    localStorage.setItem("theme",theme);
-    document.documentElement.classList.add(theme);
-    document.documentElement.classList.remove(theme=="dark"?"light":"dark");
-    axios.get(`/api/set-theme?theme=${theme}`);
-    },[theme]);
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
-    useEffect(() => {
-        const handleKeyPress = (e: KeyboardEvent) => {
-          const searchInput = document.getElementById("main_search");
-      
-          // If an input or textarea is focused, do nothing
-          if (document.activeElement === searchInput) return;
-      
-          // Focus on the search bar when `/` is pressed (and prevent default action)
-          if (e.key === "/") {
-            e.preventDefault();
-            searchInput?.focus();
-          }
-      
-          // Focus on the search bar when `Ctrl + K` is pressed (and prevent default action)
-          if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
-            e.preventDefault();
-            searchInput?.focus();
-          }
-        };
-      
-        window.addEventListener("keydown", handleKeyPress);
-        return () => {
-          window.removeEventListener("keydown", handleKeyPress);
-        };
-      }, []);
+export default function Navbar({pathname}:{pathname:string}) {
   return (
     <>
       <header className="fixed top-0 left-0 w-full z-50 bg-background border-b h-14">
@@ -73,20 +20,9 @@ export default function Navbar() {
         <Image src="/logo.png" alt="Increati" width={72} height={72} />
       </Link>
           </div>
-          
             <div className="relative w-full">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                  id="main_search"
-                  type="search"
-                  placeholder="Search..."
-                  onFocus={() => setIsSearchFocused(true)}
-                  onBlur={() => setIsSearchFocused(false)}
-                  className={`max-w-xl h-9 rounded-md border border-input pl-10 text-sm 
-                      focus:border-foreground dark:focus:border-primary bg-secondary focus:bg-background focus:outline-none 
-                      ${isSearchFocused ? 'w-full' : 'sm:w-[280px]'}
-                      transition-all duration-300 ease-in-out`}
-              />
+              <SearchBar/>
             </div>
         </div>
           <div className="flex items-center space-x-4 w-auto h-full">
@@ -115,16 +51,8 @@ export default function Navbar() {
             </Link>
                 </div>
             <div className="hidden md:flex items-center gap-4">
-            <ThemeChangeButton theme={theme} setTheme={setTheme} />
-            {isLoaded? <SignedIn><UserButton>
-              <UserButton.MenuItems>
-                  <UserButton.Link
-                      label="Profile"
-                      labelIcon={<CgProfile size={"sm"} />}
-                      href="/profile"
-                      />
-              </UserButton.MenuItems>
-          </UserButton></SignedIn>: <Skeleton className="h-6 w-6 rounded-full" />}
+            <ThemeChangeButton />
+            <CustomUserButton/>
               <SignedOut>
           <div className="flex items-center justify-center gap-4">
             <SignInButton><Button variant={"outline"} className="border-2 border-foreground dark:border-primary bg-transparent rounded-lg hover:bg-foreground dark:hover:bg-primary hover:text-background transition-all duration-200">Sign In</Button></SignInButton>
@@ -153,18 +81,7 @@ export default function Navbar() {
         >
           {pathname=="/notifications"? <FaBell className="h-6 w-6 text-foreground dark:text-primary" />:<Bell className="h-6 w-6 text-muted-foreground hover:text-foreground dark:hover:text-primary" />}
         </Link>
-        {isLoaded? <SignedIn><UserButton>
-              <UserButton.MenuItems>
-                  <UserButton.Link
-                      label="Profile"
-                      labelIcon={<CgProfile size={"sm"} />}
-                      href="/profile"
-                      />
-              </UserButton.MenuItems>
-          </UserButton></SignedIn>: <Skeleton className="h-6 w-6 rounded-full" />}
-        <SignedOut>
-          <UserDropdown theme={theme} setTheme={setTheme} />
-        </SignedOut>
+        <CustomUserButton/>
       </div>
     </>
   )

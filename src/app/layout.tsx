@@ -61,7 +61,7 @@ export default async function RootLayout({
     >
       <html lang="en" className={currentTheme}>
   <body
-    className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+    className={`${geistSans.variable} ${geistMono.variable} antialiased bg-muted`}
   >
     <ThemeProvider theme={currentTheme}></ThemeProvider>
     {children}

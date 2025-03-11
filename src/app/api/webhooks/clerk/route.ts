@@ -53,7 +53,7 @@ export async function POST(req: Request) {
         console.log(`User created with ID: ${id}`)
         break
       case 'user.updated':
-        await pool.query("UPDATE users SET username = $1, first_name = $2, last_name = $3, image_url = $4, email=$5 WHERE id = $6", [evt.data.username, evt.data.first_name, evt.data.last_name, evt.data.image_url, evt.data.email_addresses.find((emailAddress)=>emailAddress.id===evt.data.primary_email_address_id)?.email_address, id]);
+        await pool.query("UPDATE users SET username = $1, first_name = $2, last_name = $3, image_url = $4, email=$5 WHERE id = $6", [evt.data.username, evt.data.first_name, evt.data.last_name!==null?evt.data.last_name?.trim()===""?null:evt.data.last_name:null, evt.data.image_url, evt.data.email_addresses.find((emailAddress)=>emailAddress.id===evt.data.primary_email_address_id)?.email_address, id]);
         console.log(`User updated with ID: ${id}`)
         break
       case 'user.deleted':

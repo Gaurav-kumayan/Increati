@@ -17,12 +17,14 @@ import { VirtualizedCombobox, VirtualizedCommand } from "./ui/virtualized-combob
 import axios from "axios";
 import { Badge } from "./ui/badge";
 import { ScrollArea } from "./ui/scroll-area";
-import { Loader2, X } from "lucide-react";
+import { Loader, Loader2, X } from "lucide-react";
 import { Skeleton } from "./ui/skeleton";
 import { FaPlay } from "react-icons/fa6";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Option, Options, RankedOption } from "@/types/Option";
+import { useUser } from "@clerk/nextjs";
+import { Label } from "./ui/label";
 
 interface RegisterFormProps extends React.ComponentPropsWithoutRef<"div"> {
   title?: string;
@@ -40,6 +42,7 @@ export function RegisterForm({
   countries,
   ...props
 }: RegisterFormProps) {
+  const {isLoaded,user}=useUser();
   const router=useRouter();
   const countryOptions=countries.sort((a,b)=>a.name.localeCompare(b.name)).map((country)=>({value:country.country_code,label:country.name}));
   const nicheGroup:Options={ungrouped:[],groups:nicheCategories.sort((a,b)=>a.name.localeCompare(b.name)).map((category)=>({label:category.name,options:niches.filter((niche)=>niche.category==category.id).sort((a,b)=>a.name.localeCompare(b.name)).map((niche)=>({value:niche.id.toString(),label:niche.name}))}))};
@@ -53,13 +56,12 @@ export function RegisterForm({
   const [country, setCountry] = useState("");
   const [pincode, setPincode] = useState("");
   const [pincodeMessage, setPincodeMessage] = useState<{type:boolean, for:"pincode"|"country"|null,message:string}>({type:false,for:null,message:""});
-  const [locatalityMessage, setLocatalityMessage] = useState("");
   const [localities,setLocalities]=useState<{value:number,label:string}[]>([]);
-  const [validNiche, setValidNiche] = useState(true);
   const [isSearchingLocalities, setIsSearchingLocalities] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [pincodeChangedAfterFocus, setPincodeChangedAfterFocus] = useState(true);
-  const [formData,setFormData]=useState<{selectedNiches:number[],address:string,locality:number}>({selectedNiches:[],address:"",locality:0});
+  const [formData,setFormData]=useState<{first_name:string,last_name:string|null,selectedNiches:number[],address:string,locality:number}>({first_name:"",last_name:"",selectedNiches:[],address:"",locality:0});
+  const [shouldShowInvalidWarning,setShouldShowInvalidWarning]=useState(false);
 
   const searchLocalities=()=>{
     if(!pincodeChangedAfterFocus) return;
@@ -98,38 +100,23 @@ export function RegisterForm({
   },[country]);
   useEffect(()=>{
     setPincodeMessage({type:false,for:null,message:""});
-    setLocatalityMessage("");
     setLocalities([]); 
     setFormData({...formData,locality:0})
     setPincodeChangedAfterFocus(true);
   },[pincode]);
   useEffect(()=>{
-    if(formData.locality!=0){
-      setLocatalityMessage("");
+    if(user){
+      setFormData({...formData,first_name:user.firstName||"",last_name:user.lastName||""});
     }
-  },[formData.locality]);
+  },[user])
 
   function handleRegister(event:React.FormEvent){
     event.preventDefault();
-    let shouldSubmit:boolean=true;
-    if(country==""){
-      setPincodeMessage({type:false,for:"country",message:"Please select a country, then a pincode and locality"});
-      shouldSubmit=false;
-    }
-    else if(pincode==""){
-      setPincodeMessage({type:false,for:"pincode",message:"Please enter a pincode, and then a locality"});
-      shouldSubmit=false;
-    }
-    else if(formData.locality==0){
-      setLocatalityMessage("Please select a locality");
-      shouldSubmit=false;
-    }
-    if(formData.selectedNiches.length==0){
-      setValidNiche(false);
-      shouldSubmit=false;
-    }
-    if(!shouldSubmit)
+    if(country=="" || pincode==""|| formData.locality==0 || formData.selectedNiches.length==0){
+      setShouldShowInvalidWarning(true);
       return;
+    }
+    setShouldShowInvalidWarning(false);
     
     setIsSubmitting(true);
     axios.post("/api/register",formData).then((res)=>{
@@ -211,7 +198,9 @@ export function RegisterForm({
     })
     .map(({ value, label }) => ({ value, label }));
 }
-
+  if(!isLoaded){
+    return <Loader className="w-16 h-16 animate-spin m-auto dark:text-primary" />
+  }
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
@@ -225,13 +214,23 @@ export function RegisterForm({
           <form onSubmit={handleRegister}>
             <div className="grid gap-4">
               <div className="grid gap-4">
+                <div className="flex gap-2">
+                  <div className="flex flex-col flex-1">
+                  <Label htmlFor="first_name" className="mb-1 text-xs dark:text-primary">First Name</Label>
+                  <Input type="text" id="first_name" className={`${shouldShowInvalidWarning && formData.first_name==""?"placeholder-destructive border-destructive":""}`} value={formData.first_name} onInput={(event)=>{setFormData({...formData,first_name:event.currentTarget.value})}} />
+                  </div>
+                  <div className="flex flex-col flex-1">
+                  <Label htmlFor="last_name"  className="mb-1 text-xs dark:text-primary flex justify-between"><span>Last Name</span><span className="text-[0.7rem] opacity-8">( Optional )</span></Label>
+                  <Input type="text" id="last_name" value={formData.last_name||""} onInput={(event)=>{setFormData({...formData,last_name:event.currentTarget.value})}} />
+                  </div>
+                </div>
                 <div onClick={(e)=>{
                   if ((e.target as HTMLElement).closest(".no-focus")) {
                     e.preventDefault();
                     return;
                   }
                   nicheSearchInputRef.current?.focus();
-                }} className={`border h-auto shadow-sm rounded-md cursor-text flex flex-col px-2 py-1 ${!validNiche ? "border border-destructive" : ""}`}>
+                }} className={`border h-auto shadow-sm rounded-md cursor-text flex flex-col px-2 py-1 ${shouldShowInvalidWarning && formData.selectedNiches.length===0 ? "border border-destructive" : ""}`}>
                   <div className="flex flex-col justify-end">
 
                   <ScrollArea ref={scrollableNicheBadges} className={`max-h-32 h-full min-h-0 w-full rounded-t-md`}>
@@ -249,7 +248,7 @@ export function RegisterForm({
                       }
                   </ScrollArea>
                   <div className="relative w-full">
-                      <input type="text" id="nicheSearch" ref={nicheSearchInputRef} placeholder={formData.selectedNiches.length==0?"Add your niches (atleast one)":"Add more niches"} value={nicheSearchValue} className={`ps-1 my-1 max-w-full w-min bg-transparent outline-none text-sm ${!validNiche ? "placeholder-destructive" : "placeholder-muted-foreground"}`} onInput={(event)=>{setNicheSearchValue(event.currentTarget.value)}} onFocus={()=>{if(!nicheSearchBlurring){setShowNiches(true)}else{nicheSearchInputRef.current?.blur();} }} onBlur={()=>{setNicheSearchBlurring(true);setTimeout(()=>{setShowNiches(false);setNicheSearchBlurring(false)},200)}}
+                      <input type="text" id="nicheSearch" ref={nicheSearchInputRef} placeholder={formData.selectedNiches.length==0?"Add your niches (atleast one)":"Add more niches"} value={nicheSearchValue} className={`ps-1 my-1 max-w-full w-min bg-transparent outline-none text-sm ${shouldShowInvalidWarning && formData.selectedNiches.length===0 ? "placeholder-destructive" : "placeholder-muted-foreground"}`} onInput={(event)=>{setNicheSearchValue(event.currentTarget.value)}} onFocus={()=>{if(!nicheSearchBlurring){setShowNiches(true)}else{nicheSearchInputRef.current?.blur();} }} onBlur={()=>{setNicheSearchBlurring(true);setTimeout(()=>{setShowNiches(false);setNicheSearchBlurring(false)},200)}}
                       onKeyDown={(event)=>{setNicheSearchKeyEvent(event);}}
                       onKeyUp={()=>{setNicheSearchKeyEvent(null);}}
                       />
@@ -270,7 +269,6 @@ export function RegisterForm({
                           dismissible:true,
                         });
                       }
-                      setValidNiche(true);
                       setNicheSearchValue("");
                       nicheSearchInputRef.current?.blur();
                       if(scrollableNicheBadges.current){
@@ -289,21 +287,22 @@ export function RegisterForm({
                   <Input type="text" placeholder="Address (Optional)" value={formData.address} onInput={(event)=>{setFormData({...formData,address:event.currentTarget.value})}} />
                   <div className="flex flex-col gap-1">
                   <div className="flex">
-                    <VirtualizedCombobox options={{ungrouped:countryOptions,groups:[]}} filterOptions={filterByMatchingWordsRanked} title={"Select Country"} searchPlaceholder="Search Country" className={`rounded-r-none border-r-0 ${pincodeMessage.for=="country"?"border-destructive":""}`} selectedOption={country} setSelectedOption={setCountry} />
+                    <VirtualizedCombobox options={{ungrouped:countryOptions,groups:[]}} filterOptions={filterByMatchingWordsRanked} title={"Select Country"} searchPlaceholder="Search Country" className={`rounded-r-none border-r-0 ${shouldShowInvalidWarning && country==="" ?"border-destructive":""}`} selectedOption={country} setSelectedOption={setCountry} />
                   {/* <Combobox searchText="Search Countries..." title={"Select Country"} searchEmptyMessage={"Not Available"} value={country} setValue={setCountry} options={countryOptions} className={"rounded-r-none border-r-0"} /> */}
-                  <Input type="text" placeholder="Pincode" className={`rounded-l-none ${!pincodeMessage.type && pincodeMessage.for=="pincode"?"border-destructive":""}`} disabled={country===""} value={pincode} onInput={(event)=>{setPincode(event.currentTarget.value);}} onBlur={searchLocalities} />
+                  <Input type="text" placeholder="Pincode" className={`rounded-l-none ${shouldShowInvalidWarning && country!=="" && pincode===""?"border-destructive":""}`} disabled={country===""} value={pincode} onInput={(event)=>{setPincode(event.currentTarget.value);}} onBlur={searchLocalities} />
                   </div>
                   {
                     isSearchingLocalities && <Skeleton className="h-4 w-full rounded-md" />
                   }
-                  {
-                    pincodeMessage.message!="" && <span className={`text-[0.8rem] font-medium ${pincodeMessage.type? "text-foreground dark:text-primary":"text-destructive"}`}>{pincodeMessage.message}</span>
-                  }
+                    <span className={`text-[0.8rem] font-medium ${shouldShowInvalidWarning && (country===""||pincode==""||!pincodeMessage.type)? "text-destructive":pincodeMessage.message!==""?"text-foreground dark:text-primary":"hidden"}`}>
+                      {shouldShowInvalidWarning && pincodeMessage.message===""?
+                      country===""?"Please select a country, a pincode then a locality":
+                      pincode==""?"Please enter pincode and select a locality":"":pincodeMessage.message}</span>
                   </div>
                   <div className="flex flex-col gap-1">
-                  <SelectScrollable title={"Select Locality"} options={localities} value={formData.locality==0?"":formData.locality.toString()} className={`w-full ${locatalityMessage!=""?"border-destructive":""}`} onValueChange={(value)=>{setFormData({...formData,locality:parseInt(value)})}} />
+                  <SelectScrollable title={"Select Locality"} options={localities} value={formData.locality==0?"":formData.locality.toString()} className={`w-full ${shouldShowInvalidWarning && country!=="" && pincode!=="" && localities.length!=0 && formData.locality==0?"border-destructive":""}`} onValueChange={(value)=>{setFormData({...formData,locality:parseInt(value)})}} />
                   {
-                    locatalityMessage!="" && <span className={`text-[0.8rem] font-medium text-destructive`}>{locatalityMessage}</span>
+                    shouldShowInvalidWarning && country!=="" && pincode!=="" && localities.length!=0 && formData.locality===0 && <span className={`text-[0.8rem] font-medium text-destructive`}>Please select a locality</span>
                   }
                   </div>
                 </div>
