@@ -6,18 +6,10 @@ import { MapPin } from 'lucide-react';
 import { Badge } from './ui/badge';
 import EditButton from './ui/edit-button';
 import { useUser } from '@clerk/nextjs';
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 
 const UserProfile = ({userInfo}:{userInfo:User}) => {
     const {user,isLoaded}=useUser();
-    const currentUser={...user,...userInfo};
-    const router=useRouter();
-    useEffect(()=>{
-        if(currentUser.username){
-            router.push(`/user/${currentUser.username}`);
-        }
-    },[currentUser.username,router]);
+    const currentUser={...userInfo,...user};
     if(!isLoaded || !user) return null;
   return (
     <div className='w-full h-auto flex flex-col items-center'>
@@ -36,7 +28,7 @@ const UserProfile = ({userInfo}:{userInfo:User}) => {
           <div className="flex gap-4">
             <div className="flex flex-col flex-1">
               <span className="text-2xl font-bold">{currentUser.firstName} {currentUser.lastName}</span>
-              <span className="text-lg font-medium text-muted-foreground">@{user.username}</span>
+              <span className="text-lg font-medium text-muted-foreground">@{currentUser.username}</span>
               <span className="text-sm dark:text-primary mt-1 inline"><MapPin className="w-5 h-5 shrink-0 inline" /> {currentUser.locality}, {currentUser.city}, {currentUser.district}, {currentUser.state}, {currentUser.country}</span>
             </div>
             <div className='flex-1 h-full'>
