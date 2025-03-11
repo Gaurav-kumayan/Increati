@@ -2,7 +2,7 @@ export type User={
     user_id:string;
     first_name:string;
     last_name:string|null;
-    username:string;
+    username:string|null;
     image_url:string;
     address:string|null;
     locality:string;
